@@ -1,14 +1,21 @@
 package application;
 
 import javafx.application.Application;
-import javafx.stage.Stage;
+import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import java.time.LocalDate;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -72,18 +79,20 @@ public class Main extends Application {
 	public void start(Stage Stage1) {
 		Jdbccontroller connectNow = new Jdbccontroller();
 		Connection connectDb = connectNow.getConnection();
+		if (connectDb == null)
+			return;
 
 		Stage1.setTitle("LOGIN DETAILS");
 		GridPane grid1 = newgrid();
-		Scene scene1 = new Scene(grid1, 400, 300);
+		Scene scene1 = new Scene(grid1, 400, 400);
 
-		BackgroundFill bg_fill = new BackgroundFill(Color.PINK, CornerRadii.EMPTY, Insets.EMPTY);
+		BackgroundFill bg_fill = new BackgroundFill(Color.BEIGE, CornerRadii.EMPTY, Insets.EMPTY);
 		Background bg = new Background(bg_fill);
 		grid1.setBackground(bg);
 
 		Text scenetitle = new Text("Welcome");
 		scenetitle.setFont(Font.font("Times New Roman", FontWeight.BOLD, 40));
-		grid1.add(scenetitle, 0, 0, 2, 1);
+		grid1.add(scenetitle, 0, 0, 1, 1);
 
 		Label adminName = new Label("User Name:");
 		adminName.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
@@ -107,7 +116,8 @@ public class Main extends Application {
 			@Override
 			public void handle(ActionEvent e) {
 				if (adminTextField.getText() == "" || passwordBox.getText() == "") {
-					showAlert(Alert.AlertType.ERROR, grid1.getScene().getWindow(), "Form Error!","Please fill all the details");
+					showAlert(Alert.AlertType.ERROR, grid1.getScene().getWindow(), "Form Error!",
+							"Please fill all the details");
 					return;
 				} else {
 					try {
@@ -130,15 +140,15 @@ public class Main extends Application {
 					MenuItem RETDATA = new MenuItem("UPDATE");
 					MenuItem LOGOUT = new MenuItem("LOG OUT");
 
-					home.getItems().addAll(DELDATA, INSDATA, RETDATA, new SeparatorMenuItem(), LOGOUT);
+					home.getItems().addAll(INSDATA, new SeparatorMenuItem(), RETDATA, new SeparatorMenuItem(), DELDATA,
+							new SeparatorMenuItem(), LOGOUT);
 					MB.getMenus().add(home);
-					Image ig = new Image("C:\\Users\\parin\\Desktop\\python\\travelagency.png", 400, 400, false, false);
+					Image ig = new Image("C:\\Users\\parin\\eclipse-workspace\\dbms\\travelagency.png", 400, 400, false,
+							false);
 					rootNode.getChildren().add(new ImageView(ig));
 					rootNode.setTop(MB);
 					Stage1.setScene(myScene);
 					Stage1.show();
-
-					LOGOUT.setOnAction(ae -> Stage1.close());
 
 					INSDATA.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
@@ -146,7 +156,7 @@ public class Main extends Application {
 							Stage Stage2 = new Stage();
 							Stage2.setTitle("BOOK A TRIP");
 							GridPane gp2 = newgrid();
-							Scene scene2 = new Scene(gp2, 800, 550);
+							Scene scene2 = new Scene(gp2, 400, 400);
 
 							Label hl = new Label("TRIP FORM");
 							GridPane.setHalignment(hl, HPos.RIGHT);
@@ -154,41 +164,50 @@ public class Main extends Application {
 							gp2.add(hl, 0, 0);
 
 							Label nameLabel = new Label("NAME : ");
-							Label aadharLabel = new Label("AADHAR NO. : ");
-							Label fromLabel = new Label("FROM :");
-							Label toLabel = new Label("TO :");
-							Label transportlabel = new Label("TRANSPORT :");
-							Label genderlabel = new Label("GENDER : ");
-							Label phoneLabel = new Label("PHONE NUMBER : ");
-							Label DOJlabel = new Label("DATE OF JOURNEY : ");
-
 							TextField name = new TextField();
 							name.setPrefHeight(40);
 
+							Label aadharLabel = new Label("AADHAR NO. : ");
 							TextField aadhar = new TextField();
 							aadhar.setPrefHeight(40);
 
-							ObservableList<String> places = FXCollections.observableArrayList("BANGALORE", "CHENNAI","HYDERABAD", "TIRUVANANTHAPURAM");
+							Label fromLabel = new Label("FROM :");
+							ObservableList<String> places = FXCollections.observableArrayList("BANGALORE", "CHENNAI",
+									"HYDERABAD", "TIRUVANANTHAPURAM");
 							ComboBox<String> F = new ComboBox<String>(places);
 							ComboBox<String> T = new ComboBox<String>(places);
 							F.setValue("");
 							T.setValue("");
 
-							ObservableList<String> transportTypes = FXCollections.observableArrayList("CAR", "TRAIN","BUS", "FLIGHT");
+							Label toLabel = new Label("TO :");
+
+							Label transportlabel = new Label("TRANSPORT :");
+							ObservableList<String> transportTypes = FXCollections.observableArrayList("CAR", "TRAIN",
+									"BUS", "FLIGHT");
 							ComboBox<String> tt = new ComboBox<String>(transportTypes);
 							tt.setValue("");
 
+							Label genderlabel = new Label("GENDER : ");
 							RadioButton male = new RadioButton("male");
 							RadioButton female = new RadioButton("female");
-
 							ToggleGroup gender = new ToggleGroup();
 							male.setToggleGroup(gender);
 							female.setToggleGroup(gender);
 
+							Label phoneLabel = new Label("PHONE NUMBER : ");
 							TextField phone = new TextField();
 							phone.setPrefHeight(40);
 
+							Label DOJlabel = new Label("DATE OF JOURNEY : ");
 							DatePicker DOJ = new DatePicker();
+							DOJ.setDayCellFactory(picker -> new DateCell() {
+								@Override
+								public void updateItem(LocalDate date, boolean empty) {
+									super.updateItem(date, empty);
+									LocalDate today = LocalDate.now();
+									setDisable(empty || date.isBefore(today)); // Disable dates before today
+								}
+							});
 
 							gp2.add(nameLabel, 0, 1);
 							gp2.add(name, 1, 1);
@@ -217,7 +236,6 @@ public class Main extends Application {
 
 							Button But1 = button();
 							gp2.add(But1, 0, 9, 2, 1);
-							gp2.setHalignment(But1, HPos.CENTER);
 							Stage2.setScene(scene2);
 							Stage2.show();
 							Stage1.close();
@@ -233,12 +251,28 @@ public class Main extends Application {
 										showAlert(Alert.AlertType.ERROR, gp2.getScene().getWindow(), "Error!",
 												"enter ALL your DETAILS");
 										return;
+									} else if (!aadhar.getText().matches("\\d{12}")) {
+										showAlert(Alert.AlertType.ERROR, gp2.getScene().getWindow(), "Validation Error",
+												"Invalid Aadhar number.");
+										return;
+									} else if (!name.getText().matches("^[a-zA-Z]+$")) {
+										showAlert(Alert.AlertType.ERROR, gp2.getScene().getWindow(), "Validation Error",
+												"Invad name.");
+										return;
+									} else if (!phone.getText().matches("\\d{10}")) {
+										showAlert(Alert.AlertType.ERROR, gp2.getScene().getWindow(), "Validation Error",
+												"Invalid phone number.");
+										return;
+									} else if (F.getValue().matches(T.getValue())) {
+										showAlert(Alert.AlertType.ERROR, gp2.getScene().getWindow(), "Validation Error",
+												"ORIGIN AND DESTINATION CANNOT BE SAME.");
+										return;
 									}
 
 									else {
 										try {
 
-											String q1 = "insert into bookatrip(name,aadhar,from1,to1,transport,gender,phone,doj)values(?,?,?,?,?,?,?,?)";
+											String q1 = "insert into booktrip(name,aadhar,from1,to1,transport,gender,phone,doj)values(?,?,?,?,?,?,?,?)";
 											PreparedStatement p1 = connectDb.prepareStatement(q1);
 											p1.setString(1, name.getText());
 											p1.setString(2, aadhar.getText());
@@ -249,17 +283,23 @@ public class Main extends Application {
 											p1.setString(7, phone.getText());
 											p1.setString(8, ((TextField) DOJ.getEditor()).getText());
 											p1.execute();
-										} catch (Exception a) {
-											a.printStackTrace();
-										}
 
+										} catch (Exception a) {
+											showAlert(Alert.AlertType.CONFIRMATION, gp2.getScene().getWindow(),
+													"Unsuccessful!", "FAILED TO BOOK");
+											a.printStackTrace();
+											return;
+										}
 										showAlert(Alert.AlertType.CONFIRMATION, gp2.getScene().getWindow(),
 												"Successful!", "TICKET BOOKED");
+
 									}
 								}
 							});
 						}
 					});
+
+					LOGOUT.setOnAction(ae -> Stage1.close());
 
 					DELDATA.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
@@ -275,17 +315,29 @@ public class Main extends Application {
 							gp3.add(h3, 0, 0);
 
 							Label aadharLabel = new Label("AADHAR NO. : ");
-							Label fromLabel = new Label("FROM :");
-							Label toLabel = new Label("TO :");
-
 							TextField aadhar = new TextField();
 							aadhar.setPrefHeight(40);
 
-							ObservableList<String> places = FXCollections.observableArrayList("BANGALORE", "CHENNAI","HYDERABAD", "TIRUVANANTHAPURAM");
+							Label fromLabel = new Label("FROM :");
+							ObservableList<String> places = FXCollections.observableArrayList("BANGALORE", "CHENNAI",
+									"HYDERABAD", "TIRUVANANTHAPURAM");
 							ComboBox<String> F = new ComboBox<String>(places);
 							ComboBox<String> T = new ComboBox<String>(places);
 							F.setValue("");
 							T.setValue("");
+
+							Label toLabel = new Label("TO :");
+
+							Label DOJlabel = new Label("DATE OF JOURNEY : ");
+							DatePicker DOJ = new DatePicker();
+							DOJ.setDayCellFactory(picker -> new DateCell() {
+								@Override
+								public void updateItem(LocalDate date, boolean empty) {
+									super.updateItem(date, empty);
+									LocalDate today = LocalDate.now();
+									setDisable(empty || date.isBefore(today)); // Disable dates before today
+								}
+							});
 
 							gp3.add(aadharLabel, 0, 2);
 							gp3.add(aadhar, 1, 2);
@@ -296,9 +348,12 @@ public class Main extends Application {
 							gp3.add(toLabel, 0, 4);
 							gp3.add(T, 1, 4);
 
+							gp3.add(DOJlabel, 0, 5);
+							gp3.add(DOJ, 1, 5);
+
 							Button But3 = button();
 							gp3.add(But3, 0, 9, 2, 1);
-							gp3.setHalignment(But3, HPos.CENTER);
+							// gp3.setHalignment(But3, HPos.CENTER);
 							Stage3.setScene(scene3);
 							Stage3.show();
 							Stage1.close();
@@ -307,26 +362,56 @@ public class Main extends Application {
 								@Override
 								public void handle(ActionEvent event) {
 
-									if (aadhar.getText().isEmpty() || F.getValue().isEmpty()
-											|| T.getValue().isEmpty()) {
+									if (aadhar.getText().isEmpty() || F.getValue().isEmpty() || T.getValue().isEmpty()
+											|| ((TextField) DOJ.getEditor()).getText().isEmpty()) {
 										showAlert(Alert.AlertType.ERROR, gp3.getScene().getWindow(), "Error!",
 												" enter  ALL your DETAILS");
 										return;
-									}
-									else {
+									} else if (!aadhar.getText().matches("\\d{12}")) {
+										showAlert(Alert.AlertType.ERROR, gp3.getScene().getWindow(), "Validation Error",
+												"Invalid Aadhar number.");
+										return;
+									} else if (F.getValue().matches(T.getValue())) {
+										showAlert(Alert.AlertType.ERROR, gp3.getScene().getWindow(), "Validation Error",
+												"ORIGIN AND DESTINATION CANNOT BE SAME.");
+										return;
+									} else {
 										try {
+											String q12 = "SELECT COUNT(*) FROM booktrip WHERE from1 = ? AND to1=? AND aadhar = ? AND doj=?";
+											PreparedStatement preparedStatement = connectDb.prepareStatement(q12);
+											preparedStatement.setString(1, F.getValue());
+											preparedStatement.setString(2, T.getValue());
+											preparedStatement.setString(3, aadhar.getText());
+											preparedStatement.setString(4, ((TextField) DOJ.getEditor()).getText());
 
-											String q2 = "delete from bookatrip where aadhar=? and from1=? and to1=?";
-											PreparedStatement p2 = connectDb.prepareStatement(q2);
-											p2.setString(1, aadhar.getText());
-											p2.setString(2, F.getValue());
-											p2.setString(3, T.getValue());
-											p2.execute();
+											ResultSet resultSet = preparedStatement.executeQuery();
+											resultSet.next(); // Move the cursor to the first row
+
+											int count = resultSet.getInt(1);
+
+											if (count > 0) {
+												String q2 = "delete from booktrip where aadhar=? and from1=? and to1=? and doj=?";
+												PreparedStatement p2 = connectDb.prepareStatement(q2);
+												p2.setString(1, aadhar.getText());
+												p2.setString(2, F.getValue());
+												p2.setString(3, T.getValue());
+												p2.setString(4, ((TextField) DOJ.getEditor()).getText());
+												p2.execute();
+												showAlert(Alert.AlertType.CONFIRMATION, gp3.getScene().getWindow(),
+														"deletion Successful!", "TICKET CANCELED");
+											}
+											else {
+												showAlert(Alert.AlertType.CONFIRMATION, gp3.getScene().getWindow(),
+														"error!", "ticket not booked CANCELED");
+												
+											}
+
 										} catch (Exception a) {
 											a.printStackTrace();
+											showAlert(Alert.AlertType.CONFIRMATION, gp3.getScene().getWindow(),
+													"deletion unSuccessful!",
+													"ticket not canceled as ticket with such details not booked");
 										}
-										showAlert(Alert.AlertType.CONFIRMATION, gp3.getScene().getWindow(),
-												"deletion Successful!", "TICKET CANCELED");
 									}
 								}
 							});
@@ -337,11 +422,11 @@ public class Main extends Application {
 						@Override
 						public void handle(ActionEvent event) {
 							Stage Stage4 = new Stage();
-							Stage4.setTitle("retrieve");
+							Stage4.setTitle("show");
 							GridPane gp4 = newgrid();
-							Scene scene4 = new Scene(gp4, 800, 550);
+							Scene scene4 = new Scene(gp4, 800, 800);
 
-							Label h4 = new Label("enter the aadhar no to retrieve the details.");
+							Label h4 = new Label("enter the aadhar number to see the details.");
 							GridPane.setHalignment(h4, HPos.RIGHT);
 							h4.setFont(Font.font("Arial", FontWeight.BOLD, 24));
 							gp4.add(h4, 0, 0);
@@ -349,65 +434,119 @@ public class Main extends Application {
 							Label aadharLabel = new Label("AADHAR NO: ");
 							TextField aadhar = new TextField();
 							aadhar.setPrefHeight(40);
-
 							gp4.add(aadharLabel, 0, 2);
 							gp4.add(aadhar, 1, 2);
 
 							Label fromLabel = new Label("from :");
 							Label toLabel = new Label("to :");
-
-							ObservableList<String> places = FXCollections.observableArrayList("BANGALORE", "CHENNAI",
-									"HYDERABAD", "TIRUVANANTHAPURAM");
-							ComboBox<String> F = new ComboBox<String>(places);
-							ComboBox<String> T = new ComboBox<String>(places);
-							F.setValue("");
-							T.setValue("");
-
 							Label transportlabel = new Label("TRANSPORT :");
+							Label DOJlabel = new Label("DATE OF JOURNEY : ");
+							Label namelabel = new Label("NAME : ");
+							Label genderlabel = new Label("GENDER : ");
+							Label phonelabel = new Label("Phone : ");
 
-							ObservableList<String> transportTypes = FXCollections.observableArrayList("CAR", "TRAIN",
-									"BUS", "FLIGHT");
-							ComboBox<String> tt = new ComboBox<String>(transportTypes);
-							tt.setValue("");
+							TextField from = new TextField();
+							from.setPrefHeight(40);
+
+							TextField to = new TextField();
+							to.setPrefHeight(40);
+
+							TextField transport = new TextField();
+							transport.setPrefHeight(40);
+
+							TextField DOJ = new TextField();
+							DOJ.setPrefHeight(40);
+
+							TextField name = new TextField();
+							name.setPrefHeight(40);
+
+							TextField gender = new TextField();
+							gender.setPrefHeight(40);
+
+							TextField phone = new TextField();
+							phone.setPrefHeight(40);
 
 							gp4.add(fromLabel, 0, 3);
-							gp4.add(F, 1, 3);
+							gp4.add(from, 1, 3);
 
 							gp4.add(toLabel, 0, 4);
-							gp4.add(T, 1, 4);
+							gp4.add(to, 1, 4);
 
 							gp4.add(transportlabel, 0, 5);
-							gp4.add(tt, 1, 5);
+							gp4.add(transport, 1, 5);
+
+							gp4.add(DOJlabel, 0, 6);
+							gp4.add(DOJ, 1, 6);
+
+							gp4.add(namelabel, 0, 7);
+							gp4.add(name, 1, 7);
+
+							gp4.add(genderlabel, 0, 8);
+							gp4.add(gender, 1, 8);
+
+							gp4.add(phonelabel, 0, 9);
+							gp4.add(phone, 1, 9);
 
 							Button But4 = button();
-							gp4.add(But4, 0, 6, 2, 1);
-							gp4.setHalignment(But4, HPos.CENTER);
+							gp4.add(But4, 0, 10, 2, 1);
+							// gp4.setHalignment(But4, HPos.CENTER);
 							But4.setOnAction(new EventHandler<ActionEvent>() {
 								@Override
 								public void handle(ActionEvent event) {
 
-									if (aadhar.getText().isEmpty()) {
-										showAlert(Alert.AlertType.ERROR, gp4.getScene().getWindow(), "Error!",
-												" enter your ALL DETAILS");
+									if (!aadhar.getText().matches("\\d{12}")) {
+										showAlert(Alert.AlertType.ERROR, gp4.getScene().getWindow(), "Validation Error",
+												"Invalid Aadhar number.");
 										return;
-									}
-
-									else {
+									} else {
 										try {
+											String q10 = "SELECT count(*) FROM booktrip WHERE aadhar=?";
+											String q11 = "SELECT name,FROM1,to1,transport,gender,phone,doj FROM booktrip WHERE aadhar=?";
+											PreparedStatement preparedStatement = connectDb.prepareStatement(q10);
+											preparedStatement.setString(1, aadhar.getText());
+											ResultSet resultSet = preparedStatement.executeQuery();
+											resultSet.next(); // Move the cursor to the first row
+											int count = resultSet.getInt(1);
 
-											String q4 = "update bookatrip set from1=?,to1=?, transport=? where aadhar=?";
-											PreparedStatement p4 = connectDb.prepareStatement(q4);
-											p4.setString(1, F.getValue());
-											p4.setString(2, T.getValue());
-											p4.setString(3, tt.getValue());
-											p4.setString(4, aadhar.getText());
+											if (count > 0) {
+												try {
+													PreparedStatement pt = connectDb.prepareStatement(q11);
+													pt.setString(1, aadhar.getText());
+													ResultSet resultSet1 = pt.executeQuery();
 
-											p4.execute();
+													if (resultSet1.next()) {
+														String namestr = resultSet1.getString("name");
+														String fromstr = resultSet1.getString("FROM1");
+														String tostr = resultSet1.getString("to1");
+														String transstr = resultSet1.getString("transport");
+														String genderstr = resultSet1.getString("gender");
+														String phstr = resultSet1.getString("phone");
+														String jourstr = resultSet1.getString("doj");
+
+														name.setText(namestr);
+														from.setText(fromstr);
+														to.setText(tostr);
+														gender.setText(genderstr);
+														transport.setText(transstr);
+														DOJ.setText(jourstr);
+														phone.setText(phstr);
+
+													}
+													
+												} catch (Exception a) {
+													a.printStackTrace();
+
+												}
+											}
+											else {
+												showAlert(Alert.AlertType.CONFIRMATION, gp4.getScene().getWindow(),
+														"ERROR!","NO TICKET BOOKED FOR THIS NUMBER");
+												
+											}
+
 										} catch (Exception a) {
 											a.printStackTrace();
 										}
-										showAlert(Alert.AlertType.CONFIRMATION, gp4.getScene().getWindow(),
-												"Successful!", "UDATE DONE!!");
 									}
 								}
 							});
